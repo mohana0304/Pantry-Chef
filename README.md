@@ -1,7 +1,5 @@
 # Pantry Chef
 
-(your local README content)
+My local content
 
----
-
-(content from GitHub README)
+Content from GitHub
