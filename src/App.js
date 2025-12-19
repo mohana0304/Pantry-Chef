@@ -242,22 +242,31 @@ function App() {
   return (
     <div className="app">
       <header className="header">
-        <div className="header-container">
-          <div className="logo">
-            <img src={logo} alt="Indian Recipe Finder" className="logo-img" />
-          </div>
-          <div className="header-content">
-            <h1>Indian Recipe Finder</h1>
-            <p className="tagline">Find recipes using your available ingredients</p>
-          </div>
-        </div>
-      </header>
+  <div className="header-container">
+    <div className="logo">
+      <img 
+        src={logo} 
+        alt="Indian Recipe Finder" 
+        className="logo-img" 
+        style={{ 
+          width: '180px',  // Increased from 150px to 180px
+          height: '180px', // Increased proportionally
+          objectFit: 'contain'
+        }} 
+      />
+    </div>
+    <div className="header-content">
+      <h1>Recipe Finder</h1>
+      <p className="tagline">Find recipes using your available ingredients</p>
+    </div>
+  </div>
+</header>
 
       <main className="main">
         <div className="input-section">
           <form onSubmit={handleGenerate} className="ingredient-form">
             <div className="form-header">
-              <h2>What Indian ingredients do you have?</h2>
+              <h2>What ingredients do you have?</h2>
               <p className="form-subtitle">Add 1-5 ingredients to find matching recipes</p>
             </div>
             
@@ -301,7 +310,7 @@ function App() {
             )}
 
             <div className="quick-add-section">
-              <p className="quick-add-title">Common Indian ingredients:</p>
+              <p className="quick-add-title">Common ingredients:</p>
               <div className="quick-add-grid">
                 {commonIndianIngredients.map((ing, idx) => (
                   <button
@@ -331,7 +340,7 @@ function App() {
                 ) : (
                   <>
                     <span className="btn-icon">🔍</span>
-                    Find Indian Recipes
+                    Find Recipes
                   </>
                 )}
               </button>
@@ -363,7 +372,7 @@ function App() {
         {loading && (
           <div className="loading">
             <div className="spinner"></div>
-            <p>Searching Indian recipes database...</p>
+            <p>Searching recipes database...</p>
           </div>
         )}
 
@@ -502,7 +511,7 @@ function App() {
 
             {recipeOptions.length > 0 && (
               <div className="alternative-recipes">
-                <h3>More Indian Recipe Ideas</h3>
+                <h3>More Recipe Ideas</h3>
                 <div className="alternatives-grid">
                   {recipeOptions.map((option, idx) => (
                     <div 
@@ -552,9 +561,9 @@ function App() {
         )}
 
         <footer className="footer">
-          <p>Indian Recipe Finder • Using TheMealDB API</p>
+          <p>Recipe Finder • Using TheMealDB API</p>
           <p className="footer-note">
-            Free API • No key required • Limited to available Indian recipes in database
+            Free API • No key required • Limited to available  recipes in database
           </p>
         </footer>
       </main>
