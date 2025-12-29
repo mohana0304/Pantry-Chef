@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Navigate } from 'react-router-dom';
-import { createClient } from '@supabase/supabase-js';
 import logo from './assets/logo.png';
 import './App.css';
 
 // TheMealDB API (FREE - no key needed)
 const API_BASE = 'https://www.themealdb.com/api/json/v1/1';
 
-//  Supabase for testing
+// Mock Supabase for testing
 const supabase = {
   auth: {
     getSession: async () => ({ 
@@ -117,28 +115,15 @@ function AuthProvider({ children }) {
 }
 
 function useAuth() {
-  return React.useContext(AuthContext);
-}
-
-// Protected Route Component
-function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth();
-  
-  if (loading) {
-    return <div className="loading">Loading...</div>;
+  const context = React.useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
   }
-  
-  if (!user) {
-    return <Navigate to="/login" />;
-  }
-  
-  return children;
+  return context;
 }
 
 // Landing Page Component (Before Login)
-function LandingPage() {
-  const navigate = useNavigate();
-
+function LandingPage({ onLoginClick, onSignupClick }) {
   return (
     <div className="landing-page">
       <header className="landing-header">
@@ -149,26 +134,24 @@ function LandingPage() {
             className="logo-img" 
           />
         </div>
-       
+        <h1>Recipe Finder</h1>
         <p className="landing-subtitle">Find recipes by ingredients you have</p>
       </header>
 
       <main className="landing-main">
-
-
         <div className="landing-cta">
           <h2>Get Started Now</h2>
           <p>Login to search recipes using TheMealDB API</p>
           
           <div className="cta-buttons">
             <button 
-              onClick={() => navigate('/login')}
+              onClick={onLoginClick}
               className="cta-btn primary"
             >
               Login
             </button>
             <button 
-              onClick={() => navigate('/signup')}
+              onClick={onSignupClick}
               className="cta-btn secondary"
             >
               Sign Up
@@ -185,13 +168,12 @@ function LandingPage() {
 }
 
 // Login Component
-function Login() {
+function Login({ onLogin, onBack, onGoToSignup }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { signIn } = useAuth();
-  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -201,7 +183,7 @@ function Login() {
     try {
       const { error } = await signIn(email, password);
       if (error) throw error;
-      navigate('/dashboard');
+      onLogin();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -246,13 +228,13 @@ function Login() {
             </button>
 
             <div className="auth-links">
-              <p>Don't have an account? <Link to="/signup">Sign up</Link></p>
+              <p>Don't have an account? <button type="button" className="link-btn" onClick={onGoToSignup}>Sign up</button></p>
             </div>
 
             <button 
               type="button" 
               className="back-btn"
-              onClick={() => navigate('/')}
+              onClick={onBack}
             >
               ← Back to Home
             </button>
@@ -264,7 +246,7 @@ function Login() {
 }
 
 // Signup Component
-function Signup() {
+function Signup({ onSignup, onBack, onGoToLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -272,7 +254,6 @@ function Signup() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const { signUp } = useAuth();
-  const navigate = useNavigate();
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -294,7 +275,7 @@ function Signup() {
       if (error) throw error;
       setSuccess('Account created successfully!');
       setTimeout(() => {
-        navigate('/dashboard');
+        onSignup();
       }, 1500);
     } catch (err) {
       setError(err.message);
@@ -352,13 +333,13 @@ function Signup() {
             </button>
 
             <div className="auth-links">
-              <p>Already have an account? <Link to="/login">Log in</Link></p>
+              <p>Already have an account? <button type="button" className="link-btn" onClick={onGoToLogin}>Log in</button></p>
             </div>
 
             <button 
               type="button" 
               className="back-btn"
-              onClick={() => navigate('/')}
+              onClick={onBack}
             >
               ← Back to Home
             </button>
@@ -370,8 +351,8 @@ function Signup() {
 }
 
 // Main Dashboard/Recipe Finder Component (After Login)
-function Dashboard() {
-  const { user, signOut } = useAuth();
+function Dashboard({ onLogout }) {
+  const { user } = useAuth();
   const [ingredients, setIngredients] = useState([]);
   const [currentIngredient, setCurrentIngredient] = useState('');
   const [recipe, setRecipe] = useState(null);
@@ -379,7 +360,6 @@ function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [savedRecipes, setSavedRecipes] = useState([]);
-  const navigate = useNavigate();
 
   // Fetch saved recipes
   useEffect(() => {
@@ -609,18 +589,13 @@ function Dashboard() {
     setError(null);
   };
 
-  const handleLogout = async () => {
-    await signOut();
-    navigate('/');
-  };
-
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
         <div className="header-top">
           <div className="user-info">
-            <span className="user-email">Welcome, {user.email}</span>
-            <button onClick={handleLogout} className="logout-btn">
+            <span className="user-email">Welcome, {user?.email}</span>
+            <button onClick={onLogout} className="logout-btn">
               Logout
             </button>
           </div>
@@ -632,11 +607,6 @@ function Dashboard() {
               src={logo} 
               alt="Recipe Finder" 
               className="logo-img" 
-              style={{ 
-                width: '120px',
-                height: '120px',
-                objectFit: 'contain'
-              }} 
             />
           </div>
           <div className="header-content">
@@ -972,7 +942,7 @@ function Dashboard() {
         )}
 
         <footer className="dashboard-footer">
-          <p>pantry chef </p>
+          <p>pantry chef</p>
           <p className="footer-note">
             Searches recipes by ingredient • Real-time results
           </p>
@@ -984,24 +954,38 @@ function Dashboard() {
 
 // Main App Component
 function App() {
+  const [view, setView] = useState('landing'); // 'landing', 'login', 'signup', 'dashboard'
+
+  const handleLogin = () => {
+    setView('dashboard');
+  };
+
   return (
-    <Router>
-      <AuthProvider>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } 
-          />
-        </Routes>
-      </AuthProvider>
-    </Router>
+    <AuthProvider>
+      {view === 'landing' && (
+        <LandingPage 
+          onLoginClick={() => setView('login')}
+          onSignupClick={() => setView('signup')}
+        />
+      )}
+      {view === 'login' && (
+        <Login 
+          onLogin={handleLogin}
+          onBack={() => setView('landing')}
+          onGoToSignup={() => setView('signup')}
+        />
+      )}
+      {view === 'signup' && (
+        <Signup 
+          onSignup={handleLogin}
+          onBack={() => setView('landing')}
+          onGoToLogin={() => setView('login')}
+        />
+      )}
+      {view === 'dashboard' && (
+        <Dashboard onLogout={() => setView('landing')} />
+      )}
+    </AuthProvider>
   );
 }
 
